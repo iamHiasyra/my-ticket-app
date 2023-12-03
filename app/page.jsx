@@ -5,6 +5,11 @@ const getTickets = async () => {
     const res = await fetch("http:/localhost:3000/api/Tickets", {
       cache: "no-store",
     });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch topics");
+    }
+
     return res.json();
   } catch (error) {
     console.log("Failed to get tickets", error);
@@ -12,20 +17,28 @@ const getTickets = async () => {
 };
 
 const Dashboard = async () => {
-  const { tickets } = await getTickets();
-  const uniqueCat = [...new Set(tickets?.map(({ category }) => category))];
+  const data = await getTickets();
+
+  if (!data?.tickets) {
+    return <p>No ticket.</p>;
+  }
+
+  const tickets = data.tickets;
+  const uniqueCategories = [
+    ...new Set(tickets?.map(({ category }) => category)),
+  ];
 
   return (
     <div className="p-5">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div>
         <div>
           {tickets &&
-            uniqueCat?.map((cat, catIndex) => (
-              <div className="mb-4" key={catIndex}>
-                <h2>{cat}</h2>
+            uniqueCategories?.map((uniqueCategory, categoryIndex) => (
+              <div className="mb-4" key={categoryIndex}>
+                <h2>{uniqueCategory}</h2>
                 <div className="lg:grid grid-cols-2 xl:grid-cols-4">
                   {tickets
-                    .filter((ticket) => ticket.category === uniqueCat)
+                    .filter((ticket) => ticket.category === uniqueCategory)
                     .map((filterTicket, _index) => (
                       <TicketCard
                         id={_index}
